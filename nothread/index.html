@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		
+		<link media="all" rel="stylesheet" type="text/css" href="reset.css">	
+		<link media="all" rel="stylesheet" type="text/css" href="controls.css">	
+	</head>
+
+<body>
+
+	<table id="welcome_page">
+                    <div class="content">						  
+						
+						<div class="content">
+						<label id="open_file_input_label" class="main_button">
+							Open File
+							<input type="file" id="open_file_input" style="position: fixed; top: -100em" onchange="myFunc()">
+						</label>
+						
+						<label id="btn1" class="action_button" onclick="Module.Acid()"/>Acid</label>
+						
+						<label id="btn2" class="action_button" onclick="Module.AcidNoise()"/>Add Noise</label>
+						<label id="btn3" class="action_button" onclick="Module.Blur()"/>Blur</label>
+						<label id="btn4" class="action_button" onclick="Module.GreyStyle()"/>Greyscale</label>
+						<label id="btn5" class="action_button" onclick="Module.HighContrast()"/>High Contrast</label>
+						<label id="btn6" class="action_button" onclick="Module.HorizontalFlip()"/>Horizontal Flip</label>
+						<label id="btn7" class="action_button" onclick="Module.NegativeBlur()"/>Negative Blue</label>
+						<label id="btn8" class="action_button" onclick="Module.NegativeRed()"/>Negative Red</label>
+						<label id="btn9" class="action_button" onclick="Module.NegativeGreen()"/>Negative Green</label>
+						<label id="btn10" class="action_button" onclick="Module.Pixelate()"/>Pixelate</label>
+						<label id="btn11" class="action_button" onclick="Module.RemoveBlue()"/>Remove Blue</label>
+						<label id="btn12" class="action_button" onclick="Module.RemoveRed()"/>Remove Red</label>
+						<label id="btn13" class="action_button" onclick="Module.RemoveGreen()"/>Remove Green</label>
+						<label id="btn14" class="action_button" onclick="Module.Splin()"/>Split</label>
+						<label id="btn15" class="action_button" onclick="Module.VerticalFilp()"/>Vertical Flip</label>
+						
+												
+						<label id="btn16" class="main_button" onclick="Module.DrawMandelbrot()"/>Draw Fractal</label>
+						<label id="btn17" class="main_button" onclick="Module.ResetImg()"/>Reset</label>
+						<label id="btn18" class="main_button" onclick="Module.SaveImg()"/>Save</label>
+						<label id="btn19" class="main_button" onclick="Module.SaveArch()"/>Save archive</label>
+						<label id="btn20" class="main_button" onclick="Module.FilterAllImpl()"/>Filter All</label>
+						
+						
+						
+						</div>	
+					
+					</div>
+					
+					<canvas id="canvas"></canvas>	
+					
+				</td>
+
+    </table>
+			
+	
+	
+	
+	<script type="text/javascript">	
+	
+	// Function to download data to a file
+	function download( data, filename, type ) {
+    var file = new Blob([data], {type: type});
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+        var a = document.createElement("a"),
+                url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);  
+        }, 0); 
+    }
+}
+
+	var myFunc = function() 
+	{				
+	   var reader  = new FileReader();	   	   
+	   reader.onload = function() 
+	   {
+		  var loadedArray = reader.result;					  
+     	  Module.loadImage( loadedArray );
+	   };
+	   
+	   reader.onerror = function() 
+	   {
+		  alert( reader.error );
+	   };
+
+	   var input = document.getElementById( "open_file_input" );	   
+	   reader.readAsArrayBuffer( input.files[0] );
+	}
+	</script>
+
+  
+	
+
+    <!-- Allow the C++ to access the canvas element -->
+    <script type='text/javascript'>
+        var Module = {
+            canvas: (function() { return document.getElementById('canvas'); })()
+        };
+    </script>
+
+	<script type='text/javascript'>
+	
+	var handleEvent = true;
+	var myListener = function()
+	{
+		if( handleEvent )
+			document.getElementById( 'open_file_input' ).click();
+		handleEvent = false;
+	};
+	
+	var fun = function()
+	{
+		handleEvent = true;								
+		document.addEventListener('click', myListener  );				
+	};
+
+		var JSBinder = {
+			showAlert: function(str) {
+				alert(str);				
+			},
+			
+			saveFile: function(str) 
+			{				
+				download( str, 'image.ppm', '' );
+			},
+			
+			saveArchive: function(str)
+			{
+				var vector = Module['returnVectorData']();
+				var uint8 = new Uint8Array(vector.size());
+				for(var i=0;i<vector.size();i++){
+					uint8[i]=vector.get(i);	
+				}					
+				download(uint8, 'image.zip', '');
+			},
+			
+			requestFile: function()
+			{	
+				fun();				
+			}
+		}
+	
+		var JSBinderObj = Module.JSBinder.implement(JSBinder);
+	</script>
+
+	<script type="text/javascript">
+		function testAlert()
+		{
+			alert("hello?");
+		}
+	</script>
+
+    <!-- Add the javascript glue code as generated by Emscripten -->
+    <script src="emtest.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,64 @@
+#welcome_page
+{
+    position: absolute;
+    left: 10em;
+    right: 10em;
+}
+
+#left_container
+{
+    flex: none;
+    width: 25%;
+    right: 10em;
+}
+
+.main_button
+{
+    min-width: 4.3em;
+    height: 2.25em;
+    display: inline-block;
+    margin-top: 0.9em;
+	margin-bottom: 1.07em;
+    padding-right: 0.875em;
+    padding-left: 0.875em;
+    line-height: 2;
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #ff0000;
+    text-align: center;
+    text-decoration: none;
+    text-shadow: 0 0 1px rgba(0,0,0,0.66);
+	cursor: pointer;
+	
+}
+
+.main_button:hover
+{
+    background-color: #ef9634;
+}
+
+.action_button
+{
+    min-width: 4.3em;
+    height: 2.25em;
+    display: inline-block;
+    margin-top: 0.9em;
+	margin-bottom: 1.07em;
+    padding-right: 0.875em;
+    padding-left: 0.875em;
+    line-height: 2;
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #009999;
+    text-align: center;
+    text-decoration: none;
+    text-shadow: 0 0 1px rgba(0,0,0,0.66);
+	cursor: pointer;
+	
+}
+.action_button:hover
+{
+    background-color: #ea9634;
+}
