@@ -20,6 +20,9 @@ var Module = {};
 
 // These modes need to assign to these variables because of how scoping works in them.
 
+function assert(condition, text) {
+  if (!condition) abort('Assertion failed: ' + text);
+}
 
 function threadPrintErr() {
   var text = Array.prototype.slice.call(arguments).join(' ');
@@ -103,6 +106,12 @@ this.onmessage = function(e) {
       // The stack grows downwards
       var max = e.data.stackBase;
       var top = e.data.stackBase + e.data.stackSize;
+      assert(threadInfoStruct);
+      assert(selfThreadId);
+      assert(parentThreadId);
+      assert(top != 0);
+      assert(e.data.stackSize > 0);
+      assert(top > max);
       // Also call inside JS module to set up the stack frame for this pthread in JS module scope
       Module['establishStackSpaceInJsModule'](top, max);
       Module['_emscripten_tls_init']();
@@ -119,6 +128,7 @@ this.onmessage = function(e) {
         // flag -s EMULATE_FUNCTION_POINTER_CASTS=1 to add in emulation for this x86 ABI extension.
         var result = Module['dynCall_ii'](e.data.start_routine, e.data.arg);
 
+        Module['checkStackCookie']();
         // The thread might have finished without calling pthread_exit(). If so, then perform the exit operation ourselves.
         // (This is a no-op if explicit pthread_exit() had been called prior.)
         if (!noExitRuntime) PThread.threadExit(result);
@@ -128,8 +138,15 @@ this.onmessage = function(e) {
         } else if (ex != 'unwind') {
           Atomics.store(HEAPU32, (threadInfoStruct + 4 /*C_STRUCTS.pthread.threadExitCode*/ ) >> 2, (ex instanceof Module['ExitStatus']) ? ex.status : -2 /*A custom entry specific to Emscripten denoting that the thread crashed.*/);
           Atomics.store(HEAPU32, (threadInfoStruct + 0 /*C_STRUCTS.pthread.threadStatus*/ ) >> 2, 1); // Mark the thread as no longer running.
+          if (typeof(Module['_emscripten_futex_wake']) !== "function") {
+            err("Thread Initialisation failed.");
+            throw ex;
+          }
           Module['_emscripten_futex_wake'](threadInfoStruct + 0 /*C_STRUCTS.pthread.threadStatus*/, 0x7FFFFFFF/*INT_MAX*/); // Wake all threads waiting on this thread to finish.
           if (!(ex instanceof Module['ExitStatus'])) throw ex;
+        } else {
+          // else e == 'unwind', and we should fall through here and keep the pthread alive for asynchronous events.
+          out('Pthread 0x' + threadInfoStruct.toString(16) + ' completed its pthread main entry point with an unwind, keeping the pthread worker alive for asynchronous operation.');
         }
       }
     } else if (e.data.cmd === 'cancel') { // Main thread is asking for a pthread_cancel() on this thread.
